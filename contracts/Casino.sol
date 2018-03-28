@@ -1,4 +1,4 @@
-pragma solidity 0.4.20;
+pragma solidity ^0.4.20;
 contract Casino {
    address public owner;
    uint256 public minimumBet;
@@ -42,6 +42,14 @@ contract Casino {
       uint256 numberGenerated = block.number % 10 + 1; // This isn't secure
       distributePrizes(numberGenerated);
    }
+
+   // reset the data
+   function resetData() {
+     players.length = 0; //Delete all the players array
+     totalBet = 0;
+     numberOfBets = 0;
+   }
+
    // Sends the corresponding ether to each winner depending on the total bets
    function distributePrizes(uint256 numberWinner) public {
       address[100] memory winners; // We have to create a temporary in memory array with fixed size
@@ -60,5 +68,6 @@ contract Casino {
          if(winners[j] != address(0)) // Check that the address in this fixed array is not empty
          winners[j].transfer(winnerEtherAmount);
       }
+      resetData();
    }
 }
