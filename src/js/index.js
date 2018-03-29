@@ -17,7 +17,7 @@ class App extends React.Component { //create App component
       console.log("Using web3 detected from extenal source like MetaMask")
     }else{
       this.web3 = new Web3(new
-      Web3.providers.HttpProvider("http://localhost:8545"))
+      Web3.providers.HttpProvider("http://localhost:8545")) //You should remove this fallback when you deploy live, as it's inherently insecure. Consider switching to Metamask for development.
     }
     const myContract = web3.eth.contract([
 	{
@@ -223,11 +223,77 @@ class App extends React.Component { //create App component
 		"type": "function"
 	}
 ])
-this.state.ContractInstance = myContract.at("0x111ae0e4784038fcd001ecf2137ca5bec7e98cb1")
+
+
+this.state.ContractInstance = MyContract.at("0x111ae0e4784038fcd001ecf2137ca5bec7e98cb1")
   }
 
-  voteNumber(number) { //this function will send a vote to the contract
-    console.log(number)
+componentDidMount(){
+  this.updateState()
+  this.setupListeners()
+
+  setInterval(this.updateState.bind(this), 10e3)
+}
+
+updateState(){
+this.state.ContractInstance.minimumBet((err, result) => {
+if(result != null){
+  this.setState({
+    minimumBet: parseFloat(web3.fromWei(result, 'ether'))
+  })
+}
+})
+this.state.ContractInstance.totalBet((err, result) {
+  if(result != null) {
+    this.setState({
+      totalBet:parseFloat(web3.fromWei(result, 'ether'))
+    })
+  }
+})
+this.state.ContractInstance.numberOfBets((err, result) => {
+  if(result != null){
+    this.setState({
+      maxAmountOfBets: parseInt(result)
+    })
+  }
+})
+}
+
+//listen for events and executes the voteNumber method
+setupListeners(){
+  let liNodes = this.refs.numbers.querySelelectorAll('li')
+  liNodes.forEach(number => {
+    number.addEventListener('click', event => {
+      event.target.className = 'number-selected'
+      this.voteNumber(parseInt(event.target.innerHTML), done
+    => {
+
+      //Remove the other number selected
+      for(let i=0;i < liNodes.length; i++){
+        liNodes[i].className = ''
+      }
+    })
+    })
+  })
+}
+
+  voteNumber(number, cb) { //this function will send a vote to the contract
+    let bet = this.refs['ehter-bet'].value
+
+    if(!bet) bet = 0.1
+
+    if(parseFloat(bet) < this.state.minimumBet) {
+      alert('You must bet more than the mininum')
+      cb()
+    } else {
+      this.state.ContractInstance.bet(number, {
+        gas: 300000,
+        from: web3.eth.accounts[0],
+        value: web3.toWei(bet, 'ether')
+      }, (err, result) => {
+        cb()
+      })
+    }
   }
 
     render() {
